@@ -1,10 +1,15 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "blitzdb", "code\blitzdb.csproj", "{4E81CA57-E867-420D-AED9-80912F63224E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "test\test.csproj", "{E2354198-D250-4F75-AEE1-34C6D61A0B63}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DbSetup", "DbSetup", "{9C4BD668-6900-4A2B-B253-32BF1A129619}"
+	ProjectSection(SolutionItems) = preProject
+		DbSetup\Schema\0001-BasicTable.sql = DbSetup\Schema\0001-BasicTable.sql
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
