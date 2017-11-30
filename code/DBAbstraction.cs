@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 
 namespace blitzdb
 {
-        
+
     public class DBAbstraction : IDBAbstraction
     {
         readonly IDbConnection con;
@@ -14,15 +15,15 @@ namespace blitzdb
             this.con = con;
         }
 
-        
 
-        public void ExpandParameter(IDbCommand cmd, IDataParameter param, object[] values)
+
+        public void ExpandParameter(IDbCommand cmd, IDataParameter param, IEnumerable values)
         {
             var cmdText = cmd.CommandText;
             int x = 0;
             List<string> names = new List<string>();
 
-            foreach(var el in values)
+            foreach (var el in values)
             {
                 var p = cmd.CreateParameter();
                 p.DbType = param.DbType;
@@ -37,21 +38,20 @@ namespace blitzdb
             cmd.CommandText = cmdText;
         }
 
-                        
 
-        public void Fill(object toFill, IDbCommand dbCommand)
-        {
+
+        public void Fill(IDbCommand dbCommand, object toFill)
+        { 
+            
             dbCommand.Connection = con;
             var help = new Helpers(toFill.GetType(), dbCommand.CommandText);
 
             if (con.State == ConnectionState.Closed)
             {
-                using (con)
-                {
-                    con.Open();
-                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-                    help.Fill(toFill, res);
-                }
+                con.Open();
+                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                help.Fill(toFill, res);
+                con.Close();
             }
             else
             {
@@ -84,7 +84,8 @@ namespace blitzdb
                 con.Open();
                 ret = dbCommand.ExecuteScalar();
                 con.Close();
-            }else
+            }
+            else
             {
                 ret = dbCommand.ExecuteScalar();
             }

@@ -44,8 +44,7 @@ namespace blitzdb
             }
 
         }
-
-
+        
         internal static Action<Object, IDataReader> CreateFillerFunction(Type toFill, IDataReader res)
         {
 
@@ -114,11 +113,9 @@ namespace blitzdb
                 FillSingle(toFill, data);
             }
         }
-
         private void FillSingle(object toFill, IDataReader res)
         {
             GetFillerMethod(toFill.GetType(), res)(toFill, res);
-
         }
 
         private void FillList(IList toFill, IDataReader res)
@@ -151,6 +148,5 @@ namespace blitzdb
             }
             return fillerCache[fillerKey];
         }
-
     }
 }

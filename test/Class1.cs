@@ -90,7 +90,7 @@ namespace test
             var cmd = new SqlCommand("Select Id,Name,Guid from tableOne where id =1");
             var o = new DataObject();
 
-            bdb.Fill(o, cmd);
+            bdb.Fill(cmd, o);
 
             Assert.AreEqual(1, o.Id);
 
@@ -104,7 +104,7 @@ namespace test
             var cmd = new SqlCommand("Select Id,Name,Guid from tableOne ");
             var o = new List<DataObject>();
 
-            bdb.Fill(o, cmd);
+            bdb.Fill(cmd, o);
 
             Assert.AreEqual(3, o.Count);
             Assert.AreEqual(1, o[0].Id);
@@ -117,7 +117,7 @@ namespace test
             var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where id =1");
             var o = new DataObject();
 
-            bdb.Fill(o, cmd);
+            bdb.Fill(cmd, o);
             Assert.AreEqual(1, o.Id);
             Assert.IsNull(o.StringWithoutValue);
             Assert.AreEqual("PEtter", o.Name);
@@ -129,7 +129,7 @@ namespace test
             var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
             var o = new List<DataObject>();
             cmd.Parameters.AddWithValue("Id", 1);
-            bdb.Fill(o, cmd);
+            bdb.Fill(cmd, o);
 
             Assert.AreEqual(1, o.Count);
             Assert.AreEqual(1, o[0].Id);
@@ -140,7 +140,7 @@ namespace test
             var cmd = new SqlCommand("Select Id,Name,Guid from tableOne where Id in(@Id) ");
             var o = new List<DataObject>();
             bdb.ExpandParameter(cmd, new SqlParameter("Id", DbType.Int32), new object[] { 1, 2 });
-            bdb.Fill(o, cmd);
+            bdb.Fill(cmd, o);
 
             Assert.AreEqual(2, o.Count);
             Assert.AreEqual(1, o[0].Id);

@@ -9,6 +9,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DbSetup", "DbSetup", "{9C4BD668-6900-4A2B-B253-32BF1A129619}"
 	ProjectSection(SolutionItems) = preProject
 		DbSetup\Schema\0001-BasicTable.sql = DbSetup\Schema\0001-BasicTable.sql
+		0001_1-TableOne.csv = 0001_1-TableOne.csv
 	EndProjectSection
 EndProject
 Global
