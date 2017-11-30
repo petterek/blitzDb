@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using blitzdb;
 
 namespace test
 {
@@ -139,7 +140,7 @@ namespace test
         {
             var cmd = new SqlCommand("Select Id,Name,Guid from tableOne where Id in(@Id) ");
             var o = new List<DataObject>();
-            bdb.ExpandParameter(cmd, new SqlParameter("Id", DbType.Int32), new object[] { 1, 2 });
+            cmd.ExpandParameter( new SqlParameter("Id", DbType.Int32), new object[] { 1, 2 });
             bdb.Fill(cmd, o);
 
             Assert.AreEqual(2, o.Count);

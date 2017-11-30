@@ -7,17 +7,19 @@ using System.Reflection;
 
 namespace blitzdb
 {
+
     class Helpers
     {
-        
+
         static MethodInfo getValueMi = typeof(IDataRecord).GetMethod("GetValue");
+        static MethodInfo isDbNullMi = typeof(IDataRecord).GetMethod("IsDBNull");
         static Dictionary<string, Action<object, IDataReader>> fillerCache = new Dictionary<string, Action<object, IDataReader>>();
 
         private Type type;
         private string commandText;
         private string fillerKey;
         private System.Text.RegularExpressions.Regex regEx = new System.Text.RegularExpressions.Regex(".*?(where|$)");
-        
+
 
         public Helpers(Type type, string commandText)
         {
@@ -44,7 +46,7 @@ namespace blitzdb
             }
 
         }
-        
+
         internal static Action<Object, IDataReader> CreateFillerFunction(Type toFill, IDataReader res)
         {
 
@@ -64,7 +66,7 @@ namespace blitzdb
                 FieldInfo fieldInfo = toFill.GetField(name);
 
                 if (fieldInfo == null) throw new MissingFieldException(name);
-                
+
                 var type = fieldInfo.FieldType;
 
                 var toSet = Expression.PropertyOrField(inp, name);
@@ -72,17 +74,14 @@ namespace blitzdb
 
                 Expression ex;
 
-                var param = Expression.Variable(typeof(object), "StoreValueInThis");
-
                 if (Nullable.GetUnderlyingType(type) != null | type == typeof(string)) //reference types must be checked for DBNull.Value
                 {
-
-                    ex = Expression.Block(new[] { param },
-                        Expression.Assign(param, fromValue),
+                    ex = Expression.Block(
+                        //Expression.Assign(param, fromValue),
                         Expression.IfThenElse(
-                        Expression.Equal(param, Expression.Constant(DBNull.Value)),
+                        Expression.Call(readerInp, isDbNullMi, new[] { Expression.Constant(x) }),
                             Expression.Assign(toSet, Expression.Constant(null, type)),
-                            Expression.Assign(toSet, Expression.Convert(param, type)
+                            Expression.Assign(toSet, Expression.Convert(fromValue, type)
                                 )
                             )
                          );

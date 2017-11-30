@@ -6,18 +6,11 @@ using System.Data;
 namespace blitzdb
 {
 
-    public class DBAbstraction : IDBAbstraction
+
+
+    public static class ExtensionMethods
     {
-        readonly IDbConnection con;
-
-        public DBAbstraction(IDbConnection con)
-        {
-            this.con = con;
-        }
-
-
-
-        public void ExpandParameter(IDbCommand cmd, IDataParameter param, IEnumerable values)
+        public static void ExpandParameter(this IDbCommand cmd, IDataParameter param, IEnumerable values)
         {
             var cmdText = cmd.CommandText;
             int x = 0;
@@ -37,7 +30,21 @@ namespace blitzdb
             cmdText = cmdText.Replace($"@{param.ParameterName}", string.Join(",", names.ToArray()));
             cmd.CommandText = cmdText;
         }
+    }
 
+
+    public class DBAbstraction : IDBAbstraction
+    {
+        readonly IDbConnection con;
+
+        public DBAbstraction(IDbConnection con)
+        {
+            this.con = con;
+        }
+
+
+
+        
 
 
         public void Fill(IDbCommand dbCommand, object toFill)
