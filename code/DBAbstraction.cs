@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 
 namespace blitzdb
@@ -8,48 +6,18 @@ namespace blitzdb
 
 
 
-    public static class ExtensionMethods
+    public class DBReaderAbstrction : IDbReaderAbstraction
     {
-        public static void ExpandParameter(this IDbCommand cmd, IDataParameter param, IEnumerable values)
-        {
-            var cmdText = cmd.CommandText;
-            int x = 0;
-            List<string> names = new List<string>();
+        protected IDbConnection con;
 
-            foreach (var el in values)
-            {
-                var p = cmd.CreateParameter();
-                p.DbType = param.DbType;
-                string v = $"{param.ParameterName}_{x}";
-                names.Add($"@{v}");
-                p.ParameterName = v;
-                p.Value = el;
-                cmd.Parameters.Add(p);
-                x++;
-            }
-            cmdText = cmdText.Replace($"@{param.ParameterName}", string.Join(",", names.ToArray()));
-            cmd.CommandText = cmdText;
-        }
-    }
-
-
-    public class DBAbstraction : IDBAbstraction
-    {
-        readonly IDbConnection con;
-
-        public DBAbstraction(IDbConnection con)
+        public DBReaderAbstrction(IDbConnection con)
         {
             this.con = con;
         }
 
-
-
-        
-
-
         public void Fill(IDbCommand dbCommand, object toFill)
-        { 
-            
+        {
+
             dbCommand.Connection = con;
             var help = new Helpers(toFill.GetType(), dbCommand.CommandText);
 
@@ -67,7 +35,14 @@ namespace blitzdb
             }
 
         }
+    }
 
+    public class DBAbstraction : DBReaderAbstrction, IDBAbstraction
+    {
+
+
+        public DBAbstraction(IDbConnection con) : base(con) { }
+        
         public void Execute(IDbCommand dbCommand)
         {
             dbCommand.Connection = con;
