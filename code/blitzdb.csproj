@@ -6,8 +6,8 @@
     <Deterministic>False</Deterministic>
     <IncludeSymbols>True</IncludeSymbols>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageVersion>1.5.0.0</PackageVersion>
-    <PackageReleaseNotes>d55855c2cff8f289c5dae84c9647aa87e564dac9 - master</PackageReleaseNotes>
+    <PackageVersion>1.5.0.1</PackageVersion>
+    <PackageReleaseNotes>9bff3cc16ac1c48aaa22193268bbcdaed38dd510 - master</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
