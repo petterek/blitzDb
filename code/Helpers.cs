@@ -108,8 +108,10 @@ namespace blitzdb
             }
             else
             {
-                data.Read();
-                FillSingle(toFill, data);
+                if (data.Read())
+                {
+                    FillSingle(toFill, data);
+                }
             }
         }
         private void FillSingle(object toFill, IDataReader res)
