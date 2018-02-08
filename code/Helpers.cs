@@ -63,13 +63,27 @@ namespace blitzdb
             {
                 var name = res.GetName(x);
 
-                FieldInfo fieldInfo = toFill.GetField(name);
+                var fieldInfos = toFill.GetMember(name);
 
-                if (fieldInfo == null) throw new MissingFieldException(name);
+                if (fieldInfos == null) throw new MissingFieldException(name);
+                if (fieldInfos.Length > 1) throw new AmbiguousMatchException(name);
 
-                var type = fieldInfo.FieldType;
-
-                var toSet = Expression.PropertyOrField(inp, name);
+                var fieldInfo = fieldInfos[0];
+                Type type;
+                if (fieldInfo.MemberType == MemberTypes.Field)
+                {
+                    type = toFill.GetField(fieldInfo.Name).FieldType;
+                }
+                else if (fieldInfo.MemberType == MemberTypes.Property)
+                {
+                    type = toFill.GetProperty(fieldInfo.Name).PropertyType;
+                }
+                else
+                {
+                    throw new NotSupportedException("Only fields and properties is supported.");
+                }
+                
+                        var toSet = Expression.PropertyOrField(inp, name);
                 var fromValue = Expression.Call(readerInp, getValueMi, new Expression[] { Expression.Constant(x) });
 
                 Expression ex;
