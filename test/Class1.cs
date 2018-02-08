@@ -146,8 +146,35 @@ namespace test
             Assert.AreEqual(1, o[0].Id);
         }
 
-    }
+        [Test] public void WorkingWithPropertiesInsteadOfFields()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            var o = new List<DataObjectWProperties>();
+            cmd.Parameters.AddWithValue("Id", 1);
+            bdb.Fill(cmd, o);
+        }  
+        [Test] public void ThrowsNotSupportedException()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            var o = new List<DataObjectWithFunction>();
+            cmd.Parameters.AddWithValue("Id", 1);
+            Assert.Throws<NotSupportedException>(()=>bdb.Fill(cmd, o));
 
+        }
+
+    }
+    internal class DataObjectWithFunction
+    {
+        public void Id() { }
+    }
+    internal class DataObjectWProperties
+    {
+        public int Id { get; set; }
+        public Guid? Guid { get; set; }
+        public string Name { get; set; }
+        public string StringWithoutValue { get; set; }
+        
+    }
     internal class DataObject
     {
         public int Id;
