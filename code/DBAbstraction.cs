@@ -35,6 +35,27 @@ namespace blitzdb
             }
 
         }
+
+        public T Rehydrate<T>(IDbCommand dbCommand)
+        {
+            dbCommand.Connection = con;
+            var help = new Helpers(typeof(T), dbCommand.CommandText);
+            object ret;
+            if (con.State == ConnectionState.Closed)
+            {
+                con.Open();
+                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                ret = help.Rehydrate(res);
+                con.Close();
+            }
+            else
+            {
+                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                ret = help.Rehydrate(res);
+            }
+
+            return (T)ret;
+        }
     }
 
     public class DBAbstraction : DBReaderAbstrction, IDBAbstraction
@@ -74,6 +95,6 @@ namespace blitzdb
 
             return (T)ret;
         }
-
+                
     }
 }
