@@ -59,6 +59,7 @@ namespace blitzdb
 
             var readerInp = Expression.Parameter(typeof(IDataReader), "ReaderToReadFrom");
 
+
             for (var x = 0; x < res.FieldCount; x++)
             {
                 var name = res.GetName(x);
@@ -136,11 +137,23 @@ namespace blitzdb
         private void FillList(IList toFill, IDataReader res)
         {
 
-            while (res.Read())
+
+            if (type.IsPrimitive) //If the list is of type List<int>. Will always use col 0 
             {
-                var oRef = Activator.CreateInstance(type);
-                toFill.Add(oRef);
-                FillSingle(oRef, res);
+                while (res.Read())
+                {
+                    toFill.Add(res[0]);
+                }
+            }
+            else
+            {
+                while (res.Read())
+                {
+                    var oRef = Activator.CreateInstance(type);
+                    toFill.Add(oRef);
+                    FillSingle(oRef, res);
+                }
+
             }
         }
 

@@ -15,7 +15,7 @@ namespace test
 
         private string currentDb;
         private blitzdb.DBAbstraction bdb;
-        private SqlConnection Conn;
+        
 
         [OneTimeSetUp]
         public void SetupOnce()
@@ -96,6 +96,18 @@ namespace test
 
         }
 
+        [Test] public void FillListWithPrimitivType()
+        {
+            var cmd = new SqlCommand("Select Id from tableOne");
+
+            var o = new List<int>();
+
+            bdb.Fill(cmd, o);
+
+            Assert.AreEqual(3, o.Count );
+
+
+        }
 
         [Test, MaxTime(100)]
         public void FillListOfObjectFromDb()
