@@ -7,6 +7,7 @@ namespace blitzdb
     public interface IDbReaderAbstraction
     {
         void Fill(IDbCommand dbCommand, object toFill);
+        T Rehydrate<T>(IDbCommand dbCommand);
     }
 
     public interface IDBAbstraction : IDbReaderAbstraction

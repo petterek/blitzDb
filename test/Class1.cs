@@ -10,12 +10,13 @@ namespace test
     [TestFixture]
     public class Class1
     {
+
         private string ConnectionString() => $"Data Source=localhost;Initial Catalog={currentDb};Integrated Security=True; TimeOut=1;";
         private string MgmtConnectionString = $"Data Source=localhost;Integrated Security=True; TimeOut=1;";
 
         private string currentDb;
         private blitzdb.DBAbstraction bdb;
-        private SqlConnection Conn;
+        
 
         [OneTimeSetUp]
         public void SetupOnce()
@@ -96,6 +97,18 @@ namespace test
 
         }
 
+        [Test] public void FillListWithPrimitivType()
+        {
+            var cmd = new SqlCommand("Select Id from tableOne");
+
+            var o = new List<int>();
+
+            bdb.Fill(cmd, o);
+
+            Assert.AreEqual(3, o.Count );
+
+
+        }
 
         [Test, MaxTime(100)]
         public void FillListOfObjectFromDb()
@@ -162,7 +175,90 @@ namespace test
 
         }
 
+        [Test]
+        public void RehydrateWorks()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            cmd.Parameters.AddWithValue("Id", 1);
+            var o = bdb.Rehydrate<DataObjectWProperties> (cmd);
+
+            Assert.AreEqual(1, o.Id);
+        }
+
+        [Test]public void RehydrateWorksWithConstructor()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            cmd.Parameters.AddWithValue("Id", 1);
+
+            var o = bdb.Rehydrate<ImmutableObject>(cmd);
+
+            Assert.AreEqual(1, o.Id);
+        }
+
+        [Test]
+        public void RehydrateWorksWithConstructorAndList()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            cmd.Parameters.AddWithValue("Id", 1);
+
+            var o = bdb.Rehydrate<List<ImmutableObject>>(cmd);
+
+            Assert.AreEqual(1, o.Count);
+        }
+
+        [Test]
+        public void RehydrateWorksWithListOfPrimitives()
+        {
+            var cmd = new SqlCommand("Select Id from tableOne ");
+            
+            var o = bdb.Rehydrate<List<int>>(cmd);
+
+            Assert.AreEqual(3, o.Count);
+        }
+
+        [Test]
+        public void RehydrateWorksWithConstructorAndNullValue()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            cmd.Parameters.AddWithValue("Id", 1);
+            var o = bdb.Rehydrate<ImmutableObjectWithNullString>(cmd);
+
+            Assert.AreEqual(1, o.Id);
+        }
+
     }
+
+    internal class ImmutableObjectWithNullString
+    {
+        public int Id { get; }
+        public Guid? Guid { get; }
+        public string Name { get; }
+        public string StringWithoutValue { get; }
+
+        public ImmutableObjectWithNullString(int Id, Guid? guid, string name, string stringWithoutValue)
+        {
+            this.StringWithoutValue = stringWithoutValue;
+            Name = name;
+            Guid = guid;
+            this.Id = Id;
+        }
+    }
+
+    internal class ImmutableObject
+    {
+        public int Id { get; }
+        public Guid? Guid { get; }
+        public string Name { get; }
+        
+        public ImmutableObject(int Id, Guid? guid, string name)
+        {
+            Name = name;
+            Guid = guid;
+            this.Id = Id;
+        }
+    }
+
+
     internal class DataObjectWithFunction
     {
         public void Id() { }
