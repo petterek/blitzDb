@@ -173,7 +173,7 @@ namespace blitzdb
                     var toSet = Expression.PropertyOrField(theValueToFill, name);
                     var fromValue = Expression.Call(readerInp, getValueMi, new Expression[] { Expression.Constant(x) });
 
-                    allEx.Add(Expression.Assign(toSet,WrapForNullables(readerInp, x, type,  fromValue)));
+                    allEx.Add(Expression.Assign(toSet, WrapForNullables(readerInp, x, type, fromValue)));
                 }
                 allEx.Add(theValueToFill);
                 be = Expression.Block(new[] { theValueToFill }, allEx.ToArray());
@@ -302,6 +302,7 @@ namespace blitzdb
         private IList RehydrateList(IDataReader res)
         {
             var ret = (IList)Activator.CreateInstance(ListType);
+
             Func<IDataReader, object> toCall = null;
             if (type.IsPrimitive)
             {
@@ -312,12 +313,12 @@ namespace blitzdb
                 toCall = (reader) => RehydrateSingle(res);
             }
 
-            while (res.Read())
+            do //Not to good but read has happend allready to check for result.. 
             {
                 ret.Add(toCall(res));
-            }
+            } while (res.Read());
 
-            return null;
+            return ret;
         }
 
 

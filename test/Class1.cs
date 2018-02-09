@@ -189,9 +189,31 @@ namespace test
         {
             var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
             cmd.Parameters.AddWithValue("Id", 1);
+
             var o = bdb.Rehydrate<ImmutableObject>(cmd);
 
             Assert.AreEqual(1, o.Id);
+        }
+
+        [Test]
+        public void RehydrateWorksWithConstructorAndList()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            cmd.Parameters.AddWithValue("Id", 1);
+
+            var o = bdb.Rehydrate<List<ImmutableObject>>(cmd);
+
+            Assert.AreEqual(1, o.Count);
+        }
+
+        [Test]
+        public void RehydrateWorksWithListOfPrimitives()
+        {
+            var cmd = new SqlCommand("Select Id from tableOne ");
+            
+            var o = bdb.Rehydrate<List<int>>(cmd);
+
+            Assert.AreEqual(3, o.Count);
         }
 
         [Test]
