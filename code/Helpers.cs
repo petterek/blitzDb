@@ -69,10 +69,17 @@ namespace blitzdb
             {
                 var name = res.GetName(x);
 
-                var fieldInfos = toFill.GetMember(name);
+                // make case insensitive
+                var members = toFill.GetMembers();
+                //var lookup = members.Single((s) => String.Equals(s.Name, name, StringComparison.InvariantCultureIgnoreCase));
+                var fieldInfos = toFill.GetMember(name,BindingFlags.IgnoreCase | BindingFlags.Public );
+
+                //var fieldInfos = toFill.GetMember(name);
 
                 if (fieldInfos == null) throw new MissingFieldException(name);
+                if (fieldInfos.Length == 0) throw new MissingFieldException(name);
                 if (fieldInfos.Length > 1) throw new AmbiguousMatchException(name);
+                
 
                 var fieldInfo = fieldInfos[0];
                 Type type;
