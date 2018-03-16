@@ -226,6 +226,17 @@ namespace test
             Assert.AreEqual(1, o.Id);
         }
 
+        [Test]
+        public void MakeFieldCheckCaseInsensitive_Test()
+        {
+            var cmd = new SqlCommand("Select Id,Name as NaMe ,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            cmd.Parameters.AddWithValue("Id", 1);
+            var ret = new List<DataObject>();
+
+            bdb.Fill(cmd, ret);
+            
+        }
+
     }
 
     internal class ImmutableObjectWithNullString
