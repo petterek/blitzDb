@@ -5,6 +5,8 @@ namespace blitzdb
 {
 
 
+    
+
 
     public class DBReaderAbstrction : IDbReaderAbstraction
     {
@@ -36,6 +38,13 @@ namespace blitzdb
 
         }
 
+        public T Fill<T>(IDbCommand dbCommand) where T : new()
+        {
+            var ret = Activator.CreateInstance<T>();
+            Fill(dbCommand, ret);
+            return ret;
+        }
+
         public T Rehydrate<T>(IDbCommand dbCommand)
         {
             dbCommand.Connection = con;
@@ -56,6 +65,7 @@ namespace blitzdb
 
             return (T)ret;
         }
+                
     }
 
     public class DBAbstraction : DBReaderAbstrction, IDBAbstraction

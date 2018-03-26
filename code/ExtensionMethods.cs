@@ -26,5 +26,30 @@ namespace blitzdb
             cmdText = cmdText.Replace($"@{param.ParameterName}", string.Join(",", names.ToArray()));
             cmd.CommandText = cmdText;
         }
+
+
+
+        public static void Fill(this IDbConnection con, IDbCommand cmd, object target)
+        {
+
+            cmd.Connection = con;
+            var help = new Helpers(target.GetType(), cmd.CommandText);
+
+            if (con.State == ConnectionState.Closed)
+            {
+                con.Open();
+                var res = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                help.Fill(target, res);
+                con.Close();
+            }
+            else
+            {
+                var res = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                help.Fill(target, res);
+            }
+        }
+
+
+
     }
 }

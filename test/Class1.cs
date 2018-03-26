@@ -136,6 +136,16 @@ namespace test
             Assert.AreEqual("PEtter", o.Name);
         }
 
+        [Test] public void GenericFillWorks ()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where id =1");
+            
+            var o = bdb.Fill<DataObject>(cmd);
+            Assert.AreEqual(1, o.Id);
+            Assert.IsNull(o.StringWithoutValue);
+            Assert.AreEqual("PEtter", o.Name);
+        }
+
         [Test]
         public void StandardParametersWorks()
         {
