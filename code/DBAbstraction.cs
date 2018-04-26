@@ -3,11 +3,6 @@ using System.Data;
 
 namespace blitzdb
 {
-
-
-    
-
-
     public class DBReaderAbstrction : IDbReaderAbstraction
     {
         protected IDbConnection con;
@@ -19,7 +14,6 @@ namespace blitzdb
 
         public void Fill(IDbCommand dbCommand, object toFill)
         {
-
             dbCommand.Connection = con;
             var help = new Helpers(toFill.GetType(), dbCommand.CommandText);
 
@@ -35,14 +29,32 @@ namespace blitzdb
                 var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
                 help.Fill(toFill, res);
             }
-
         }
 
         public T Fill<T>(IDbCommand dbCommand) where T : new()
         {
-            var ret = Activator.CreateInstance<T>();
-            Fill(dbCommand, ret);
-            return ret;
+            var toFill = Activator.CreateInstance<T>();
+            dbCommand.Connection = con;
+
+            var help = new Helpers(toFill.GetType(), dbCommand.CommandText);
+
+            if (con.State == ConnectionState.Closed)
+            {
+                con.Open();
+                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+
+                if (!help.Fill(toFill, res))
+                {
+                    toFill = default(T);
+                }
+                con.Close();
+            }
+            else
+            {
+                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                help.Fill(toFill, res);
+            }
+            return toFill;
         }
 
         public T Rehydrate<T>(IDbCommand dbCommand)
@@ -65,15 +77,14 @@ namespace blitzdb
 
             return (T)ret;
         }
-                
     }
 
     public class DBAbstraction : DBReaderAbstrction, IDBAbstraction
     {
+        public DBAbstraction(IDbConnection con) : base(con)
+        {
+        }
 
-
-        public DBAbstraction(IDbConnection con) : base(con) { }
-        
         public void Execute(IDbCommand dbCommand)
         {
             dbCommand.Connection = con;
@@ -88,6 +99,7 @@ namespace blitzdb
                 dbCommand.ExecuteNonQuery();
             }
         }
+
         public T ExecuteScalar<T>(IDbCommand dbCommand)
         {
             object ret;
@@ -105,6 +117,5 @@ namespace blitzdb
 
             return (T)ret;
         }
-                
     }
 }

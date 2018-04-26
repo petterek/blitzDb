@@ -14,12 +14,13 @@ namespace blitzdb
 
             foreach (var el in values)
             {
-                var p = cmd.CreateParameter();
+                var p = cmd.CreateParameter() ;
+                p.Value = el;
                 p.DbType = param.DbType;
                 string v = $"{param.ParameterName}_{x}";
                 names.Add($"@{v}");
                 p.ParameterName = v;
-                p.Value = el;
+                
                 cmd.Parameters.Add(p);
                 x++;
             }
