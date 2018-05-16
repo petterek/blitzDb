@@ -14,17 +14,43 @@ namespace blitzdb
 
             foreach (var el in values)
             {
-                var p = cmd.CreateParameter();
+                var p = cmd.CreateParameter() ;
+                p.Value = el;
                 p.DbType = param.DbType;
                 string v = $"{param.ParameterName}_{x}";
                 names.Add($"@{v}");
                 p.ParameterName = v;
-                p.Value = el;
+                
                 cmd.Parameters.Add(p);
                 x++;
             }
             cmdText = cmdText.Replace($"@{param.ParameterName}", string.Join(",", names.ToArray()));
             cmd.CommandText = cmdText;
         }
+
+
+
+        public static void Fill(this IDbConnection con, IDbCommand cmd, object target)
+        {
+
+            cmd.Connection = con;
+            var help = new Helpers(target.GetType(), cmd.CommandText);
+
+            if (con.State == ConnectionState.Closed)
+            {
+                con.Open();
+                var res = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                help.Fill(target, res);
+                con.Close();
+            }
+            else
+            {
+                var res = cmd.ExecuteReader(CommandBehavior.SequentialAccess);
+                help.Fill(target, res);
+            }
+        }
+
+
+
     }
 }
