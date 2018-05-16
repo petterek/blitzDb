@@ -3,9 +3,6 @@ using System.Data;
 
 namespace blitzdb
 {
-
-
-
     public class DBReaderAbstrction : IDbReaderAbstraction
     {
         protected IDbConnection con;
@@ -24,8 +21,16 @@ namespace blitzdb
             if (con.State == ConnectionState.Closed)
             {
                 con.Open();
-                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-                help.Fill(toFill, res);
+                try
+                {
+                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                    help.Fill(toFill, res);
+                }
+                catch
+                {
+                    con.Close();
+                    throw;
+                }
                 con.Close();
             }
             else
@@ -42,14 +47,22 @@ namespace blitzdb
 
 
         public DBAbstraction(IDbConnection con) : base(con) { }
-        
+
         public void Execute(IDbCommand dbCommand)
         {
             dbCommand.Connection = con;
             if (con.State == ConnectionState.Closed)
             {
                 con.Open();
-                dbCommand.ExecuteNonQuery();
+                try
+                {
+                    dbCommand.ExecuteNonQuery();
+                }
+                catch
+                {
+                    con.Close();
+                    throw;
+                }
                 con.Close();
             }
             else
@@ -64,7 +77,16 @@ namespace blitzdb
             if (con.State == ConnectionState.Closed)
             {
                 con.Open();
-                ret = dbCommand.ExecuteScalar();
+                try
+                {
+                    ret = dbCommand.ExecuteScalar();
+
+                }
+                catch
+                {
+                    con.Close();
+                    throw;
+                }
                 con.Close();
             }
             else
