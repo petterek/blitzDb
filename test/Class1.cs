@@ -99,6 +99,18 @@ namespace test
             Assert.AreEqual(3, o.Count);
         }
 
+        [Test]
+        public void FillListWithStruct()
+        {
+            var cmd = new SqlCommand("Select Guid from tableOne");
+
+            var o = new List<Guid>();
+
+            bdb.Fill(cmd, o);
+
+            Assert.AreEqual(2, o.Count);
+        }
+
         [Test, MaxTime(100)]
         public void FillListOfObjectFromDb()
         {

@@ -284,11 +284,13 @@ namespace blitzdb
 
         private void FillList(IList toFill, IDataReader res)
         {
+            bool isValueType = type.IsPrimitive | type.BaseType == typeof(System.ValueType);
             while (res.Read())
             {
-                if (type.IsPrimitive) //If the list is of type List<int>. Will always use col 0
+                if (isValueType) //If the list is of type List<int>. Will always use col 0
                 {
-                    toFill.Add(res[0]);
+                    object value = res[0];
+                    if (value != DBNull.Value) toFill.Add(value);
                 }
                 else
                 {
