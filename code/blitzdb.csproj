@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyVersion>1.0.*</AssemblyVersion>
+
     <Deterministic>False</Deterministic>
     <IncludeSymbols>True</IncludeSymbols>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageVersion>1.7.0.1</PackageVersion>
-    <PackageReleaseNotes>9bff3cc16ac1c48aaa22193268bbcdaed38dd510 - master</PackageReleaseNotes>
+
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <Version>1.10.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
-
 </Project>

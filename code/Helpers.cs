@@ -8,21 +8,18 @@ using System.Reflection;
 
 namespace blitzdb
 {
-
-    class Helpers
+    internal class Helpers
     {
-
-        static MethodInfo getValueMi = typeof(IDataRecord).GetMethod("GetValue");
-        static MethodInfo isDbNullMi = typeof(IDataRecord).GetMethod("IsDBNull");
-        static Dictionary<string, Action<object, IDataReader>> fillerCache = new Dictionary<string, Action<object, IDataReader>>();
-        static Dictionary<string, Func<IDataReader, object>> rehydrateCache = new Dictionary<string, Func<IDataReader, object>>();
+        private static MethodInfo getValueMi = typeof(IDataRecord).GetMethod("GetValue");
+        private static MethodInfo isDbNullMi = typeof(IDataRecord).GetMethod("IsDBNull");
+        private static Dictionary<string, Action<object, IDataReader>> fillerCache = new Dictionary<string, Action<object, IDataReader>>();
+        private static Dictionary<string, Func<IDataReader, object>> rehydrateCache = new Dictionary<string, Func<IDataReader, object>>();
         private Type ListType;
         private Type type;
         private bool IsList = false;
         private string commandText;
         private string fillerKey;
         private System.Text.RegularExpressions.Regex regEx = new System.Text.RegularExpressions.Regex(".*?(where|$)");
-
 
         public Helpers(Type type, string commandText)
         {
@@ -49,12 +46,10 @@ namespace blitzdb
             {
                 fillerKey = $"{type.FullName}-{fillerKey}".GetHashCode().ToString();
             }
-
         }
 
         internal static Action<Object, IDataReader> CreateFillerAction(Type toFill, IDataReader res)
         {
-
             List<Expression> allEx = new List<Expression>();
             ParameterExpression inpP = Expression.Parameter(typeof(object), "ObjectToFill");
 
@@ -64,17 +59,15 @@ namespace blitzdb
 
             var readerInp = Expression.Parameter(typeof(IDataReader), "ReaderToReadFrom");
 
-
             for (var x = 0; x < res.FieldCount; x++)
             {
                 var name = res.GetName(x);
 
                 // make case insensitive
-                var fieldInfos = toFill.GetMember(name,BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance );
-                
+                var fieldInfos = toFill.GetMember(name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
                 if (fieldInfos.Length == 0) throw new MissingFieldException(name);
                 if (fieldInfos.Length > 1) throw new AmbiguousMatchException(name);
-                
 
                 var fieldInfo = fieldInfos[0];
                 Type type;
@@ -118,10 +111,8 @@ namespace blitzdb
 
             var be = Expression.Block(new[] { inp }, allEx.ToArray());
 
-
             return Expression.Lambda<Action<Object, IDataReader>>(be, inpP, readerInp).Compile();
         }
-
 
         internal static Func<IDataReader, object> CreateRehydrateFunction(Type toFill, IDataReader res)
         {
@@ -236,20 +227,27 @@ namespace blitzdb
             return ex;
         }
 
-        internal void Fill(object toFill, IDataReader data)
+        internal bool Fill(object toFill, IDataReader data)
         {
             if (IsList)
             {
                 FillList((System.Collections.IList)toFill, data);
+                return true;
             }
             else
             {
                 if (data.Read())
                 {
                     FillSingle(toFill, data);
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
         }
+
         internal object Rehydrate(IDataReader data)
         {
             if (!data.Read())
@@ -266,8 +264,6 @@ namespace blitzdb
                 return RehydrateSingle(data);
             }
         }
-
-
 
         private void FillSingle(object toFill, IDataReader res)
         {
@@ -288,11 +284,13 @@ namespace blitzdb
 
         private void FillList(IList toFill, IDataReader res)
         {
+            bool isValueType = type.IsPrimitive | type.BaseType == typeof(System.ValueType);
             while (res.Read())
             {
-                if (type.IsPrimitive) //If the list is of type List<int>. Will always use col 0 
+                if (isValueType) //If the list is of type List<int>. Will always use col 0
                 {
-                    toFill.Add(res[0]);
+                    object value = res[0];
+                    if (value != DBNull.Value) toFill.Add(value);
                 }
                 else
                 {
@@ -315,7 +313,7 @@ namespace blitzdb
                 toCall = (reader) => RehydrateSingle(res);
             }
 
-            do //Not to good but read has happend allready to check for result.. 
+            do //Not to good but read has happend allready to check for result..
             {
                 ret.Add(toCall(res));
             } while (res.Read());
@@ -323,12 +321,11 @@ namespace blitzdb
             return ret;
         }
 
-
         private Action<object, IDataReader> GetFillerMethod(IDataReader res)
         {
             if (fillerKey == "")
             {
-                return CreateFillerAction(type, res);//not able to cache filler..  
+                return CreateFillerAction(type, res);//not able to cache filler..
             }
 
             if (!fillerCache.ContainsKey(fillerKey))
@@ -348,7 +345,7 @@ namespace blitzdb
         {
             if (fillerKey == "")
             {
-                return CreateRehydrateFunction(type, reader);//not able to cache filler..  
+                return CreateRehydrateFunction(type, reader);//not able to cache filler..
             }
 
             if (!rehydrateCache.ContainsKey(fillerKey))
