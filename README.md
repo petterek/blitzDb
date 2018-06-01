@@ -14,7 +14,7 @@ bdb.Fill(cmd, o);
 
 ```
 
-## Fillilng list of primitive values
+## Filling list of primitive values
 If the generic type in the list is either "primitiv" or inherits from System.ValueType this will work
 
 ```
