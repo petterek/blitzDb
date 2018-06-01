@@ -1,4 +1,4 @@
-# BlitzDB
+# blitzDB
 An easy way to do mapping between db and code.
 
 
@@ -48,7 +48,7 @@ cmd.Parameters.AddWithValue("Id", 1);
 
 var o = bdb.Rehydrate<ImmutableObject>(cmd);
 
-
-
-
 ```
+
+
+You can also take a look at the unit tests, they show the usage of the lib.

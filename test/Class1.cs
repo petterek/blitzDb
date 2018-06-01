@@ -100,7 +100,7 @@ namespace test
         }
 
         [Test]
-        public void FillListWithStruct()
+        public void FillListWithValueType()
         {
             var cmd = new SqlCommand("Select Guid from tableOne");
 
