@@ -2,6 +2,12 @@
 An easy way to do mapping between db and code.
 
 
+## TODO:
+- [ ] Support for ASYNC the base interface IDBCommand does not support Async methods. Need to use SQLClient directly. Should we do this?
+- [ ] 
+
+
+
 Name of fields / properties must match the name of coloums returned from the SQL query.
 
 ## Basic usage:
