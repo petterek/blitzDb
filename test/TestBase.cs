@@ -14,12 +14,16 @@ namespace test
         private string currentDb;
         protected blitzdb.DBAbstraction bdb;
 
+        protected blitzdb.SqlServer.SqlDBAbstraction sqlDBAbstraction;
+
         [OneTimeSetUp]
         public void SetupOnce()
+
         {
             currentDb = Guid.NewGuid().ToString();
 
             var db = new blitzdb.DBAbstraction(new SqlConnection(MgmtConnectionString));
+
             db.Execute(new SqlCommand($"Create database [{currentDb}]"));
 
             SetUp();
@@ -57,6 +61,7 @@ namespace test
         public void SetUp()
         {
             bdb = new blitzdb.DBAbstraction(new SqlConnection(ConnectionString()));
+            sqlDBAbstraction = new blitzdb.SqlServer.SqlDBAbstraction(new SqlConnection(ConnectionString()));
         }
 
         [TearDown]

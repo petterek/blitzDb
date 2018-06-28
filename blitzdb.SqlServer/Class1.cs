@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Data;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
 
-namespace blitzdb
+namespace blitzdb.SqlServer
 {
-    public class DBReaderAbstraction : IDbReaderAbstraction
+    public class SqlDBReaderAbstraction : DBReaderAbstraction
     {
-        public readonly IDbConnection con;
-
-        public DBReaderAbstraction(IDbConnection con)
+        public SqlDBReaderAbstraction(SqlConnection conn) : base(conn)
         {
-            this.con = con;
         }
 
-        public void Fill(IDbCommand dbCommand, object toFill)
+        public async Task FillAsync(SqlCommand dbCommand, object toFill)
         {
-            dbCommand.Connection = con;
+            dbCommand.Connection = (System.Data.SqlClient.SqlConnection)con;
             var help = new Helpers(toFill.GetType(), dbCommand.CommandText);
 
             if (con.State == ConnectionState.Closed)
@@ -22,7 +21,7 @@ namespace blitzdb
                 con.Open();
                 try
                 {
-                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                    var res = await dbCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
                     help.Fill(toFill, res);
                 }
                 finally
@@ -37,10 +36,10 @@ namespace blitzdb
             }
         }
 
-        public T Fill<T>(IDbCommand dbCommand) where T : new()
+        public async Task<T> FillAsync<T>(SqlCommand dbCommand) where T : new()
         {
             var toFill = Activator.CreateInstance<T>();
-            dbCommand.Connection = con;
+            dbCommand.Connection = (System.Data.SqlClient.SqlConnection)con;
 
             var help = new Helpers(toFill.GetType(), dbCommand.CommandText);
 
@@ -49,7 +48,7 @@ namespace blitzdb
                 con.Open();
                 try
                 {
-                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                    var res = await dbCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
 
                     if (!help.Fill(toFill, res))
                     {
@@ -69,9 +68,9 @@ namespace blitzdb
             return toFill;
         }
 
-        public T Rehydrate<T>(IDbCommand dbCommand)
+        public async Task<T> RehydrateAsync<T>(SqlCommand dbCommand)
         {
-            dbCommand.Connection = con;
+            dbCommand.Connection = (System.Data.SqlClient.SqlConnection)con;
             var help = new Helpers(typeof(T), dbCommand.CommandText);
             object ret;
             if (con.State == ConnectionState.Closed)
@@ -79,7 +78,7 @@ namespace blitzdb
                 con.Open();
                 try
                 {
-                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+                    var res = await dbCommand.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
                     ret = help.Rehydrate(res);
                 }
                 finally
@@ -91,58 +90,6 @@ namespace blitzdb
             {
                 var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
                 ret = help.Rehydrate(res);
-            }
-
-            return (T)ret;
-        }
-    }
-
-    public class DBAbstraction : DBReaderAbstraction, IDBAbstraction
-    {
-        public DBAbstraction(IDbConnection con) : base(con)
-        {
-        }
-
-        public void Execute(IDbCommand dbCommand)
-        {
-            dbCommand.Connection = con;
-            if (con.State == ConnectionState.Closed)
-            {
-                con.Open();
-                try
-                {
-                    dbCommand.ExecuteNonQuery();
-                }
-                finally
-                {
-                    con.Close();
-                }
-            }
-            else
-            {
-                dbCommand.ExecuteNonQuery();
-            }
-        }
-
-        public T ExecuteScalar<T>(IDbCommand dbCommand)
-        {
-            object ret;
-            dbCommand.Connection = con;
-            if (con.State == ConnectionState.Closed)
-            {
-                con.Open();
-                try
-                {
-                    ret = dbCommand.ExecuteScalar();
-                }
-                finally
-                {
-                    con.Close();
-                }
-            }
-            else
-            {
-                ret = dbCommand.ExecuteScalar();
             }
 
             return (T)ret;

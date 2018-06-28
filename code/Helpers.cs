@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace blitzdb
 {
-    internal class Helpers
+    public class Helpers
     {
         private static MethodInfo getValueMi = typeof(IDataRecord).GetMethod("GetValue");
         private static MethodInfo isDbNullMi = typeof(IDataRecord).GetMethod("IsDBNull");
@@ -227,7 +227,7 @@ namespace blitzdb
             return ex;
         }
 
-        internal bool Fill(object toFill, IDataReader data)
+        public bool Fill(object toFill, IDataReader data)
         {
             if (IsList)
             {
@@ -248,7 +248,7 @@ namespace blitzdb
             }
         }
 
-        internal object Rehydrate(IDataReader data)
+        public object Rehydrate(IDataReader data)
         {
             if (!data.Read())
             {

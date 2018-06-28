@@ -16,7 +16,7 @@ namespace test
 
             var o = new List<Guid>();
 
-            await bdb.FillAsync(cmd, o);
+            await sqlDBAbstraction.FillAsync(cmd, o);
 
             Assert.AreEqual(2, o.Count);
         }
