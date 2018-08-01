@@ -6,33 +6,27 @@ namespace blitzdb
 {
     public static class ExtensionMethods
     {
-        public static void ExpandParameter(this IDbCommand cmd, IDataParameter param, IEnumerable values)
+        public class ExpandableValue
         {
-            var cmdText = cmd.CommandText;
-            int x = 0;
-            List<string> names = new List<string>();
+            public IEnumerable ValueList { get; }
 
-            foreach (var el in values)
+            public ExpandableValue(IEnumerable value)
             {
-                var p = cmd.CreateParameter() ;
-                p.Value = el;
-                p.DbType = param.DbType;
-                string v = $"{param.ParameterName}_{x}";
-                names.Add($"@{v}");
-                p.ParameterName = v;
-                
-                cmd.Parameters.Add(p);
-                x++;
+                ValueList = value;
             }
-            cmdText = cmdText.Replace($"@{param.ParameterName}", string.Join(",", names.ToArray()));
-            cmd.CommandText = cmdText;
         }
 
+        public static void ExpandParameter(this IDbCommand cmd, IDataParameter param, IEnumerable values)
+        {
+            var dbType = param.DbType;
 
+            param.Value = new ExpandableValue(values);
+            param.DbType = dbType;
+            cmd.Parameters.Add(param);
+        }
 
         public static void Fill(this IDbConnection con, IDbCommand cmd, object target)
         {
-
             cmd.Connection = con;
             var help = new Helpers(target.GetType(), cmd.CommandText);
 
@@ -49,8 +43,5 @@ namespace blitzdb
                 help.Fill(target, res);
             }
         }
-
-
-
     }
 }

@@ -48,6 +48,8 @@ namespace blitzdb
             }
         }
 
+        public bool DataRead { get; private set; }
+
         internal static Action<Object, IDataReader> CreateFillerAction(Type toFill, IDataReader res)
         {
             List<Expression> allEx = new List<Expression>();
@@ -232,17 +234,21 @@ namespace blitzdb
             if (IsList)
             {
                 FillList((System.Collections.IList)toFill, data);
+                data.Close();
                 return true;
             }
             else
             {
                 if (data.Read())
                 {
+                    DataRead = true;
                     FillSingle(toFill, data);
+                    data.Close();
                     return true;
                 }
                 else
                 {
+                    DataRead = false;
                     return false;
                 }
             }
@@ -252,8 +258,11 @@ namespace blitzdb
         {
             if (!data.Read())
             {
+                DataRead = false;
                 return null;
             }
+
+            DataRead = true;
 
             if (IsList)
             {
@@ -287,6 +296,7 @@ namespace blitzdb
             bool isValueType = type.IsPrimitive | type.BaseType == typeof(System.ValueType);
             while (res.Read())
             {
+                DataRead = true;
                 if (isValueType) //If the list is of type List<int>. Will always use col 0
                 {
                     object value = res[0];

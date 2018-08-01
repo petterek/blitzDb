@@ -1,14 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using static blitzdb.ExtensionMethods;
 
 namespace blitzdb
 {
     public class DBReaderAbstraction : IDbReaderAbstraction
     {
         public readonly IDbConnection con;
+        public int splitSize { get; set; }
 
-        public DBReaderAbstraction(IDbConnection con)
+        public DBReaderAbstraction(IDbConnection con, int splitSize = 500)
         {
+            this.splitSize = splitSize;
             this.con = con;
         }
 
@@ -22,8 +27,7 @@ namespace blitzdb
                 con.Open();
                 try
                 {
-                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-                    help.Fill(toFill, res);
+                    CheckForSplitting(dbCommand, toFill, (data, reader) => help.Fill(data, reader));
                 }
                 finally
                 {
@@ -32,8 +36,7 @@ namespace blitzdb
             }
             else
             {
-                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-                help.Fill(toFill, res);
+                CheckForSplitting(dbCommand, toFill, (data, reader) => help.Fill(data, reader));
             }
         }
 
@@ -49,9 +52,8 @@ namespace blitzdb
                 con.Open();
                 try
                 {
-                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-
-                    if (!help.Fill(toFill, res))
+                    CheckForSplitting(dbCommand, toFill, (data, reader) => help.Fill(data, reader));
+                    if (!help.DataRead)
                     {
                         toFill = default(T);
                     }
@@ -63,8 +65,7 @@ namespace blitzdb
             }
             else
             {
-                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-                help.Fill(toFill, res);
+                CheckForSplitting(dbCommand, toFill, (data, reader) => help.Fill(data, reader));
             }
             return toFill;
         }
@@ -73,14 +74,13 @@ namespace blitzdb
         {
             dbCommand.Connection = con;
             var help = new Helpers(typeof(T), dbCommand.CommandText);
-            object ret;
+            object ret = null;
             if (con.State == ConnectionState.Closed)
             {
                 con.Open();
                 try
                 {
-                    var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-                    ret = help.Rehydrate(res);
+                    CheckForSplitting(dbCommand, null, (data, reader) => ret = help.Rehydrate(reader));
                 }
                 finally
                 {
@@ -89,11 +89,77 @@ namespace blitzdb
             }
             else
             {
-                var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
-                ret = help.Rehydrate(res);
+                CheckForSplitting(dbCommand, null, (data, reader) => ret = help.Rehydrate(reader));
             }
 
             return (T)ret;
+        }
+
+        private void CheckForSplitting(IDbCommand dbCommand, object toFill, Action<object, IDataReader> callback)
+        {
+            IDbDataParameter toSplit = null;
+
+            foreach (IDbDataParameter p in dbCommand.Parameters)
+            {
+                if (p.Value.GetType() == typeof(ExpandableValue))
+                {
+                    toSplit = p;
+                    dbCommand.Parameters.Remove(p);
+                    break;
+                }
+            }
+
+            if (toSplit != null)
+            {
+                var orgCmdText = dbCommand.CommandText;
+                var paramCount = dbCommand.Parameters.Count;
+                int x = 0;
+                int thisRun = 0;
+                List<string> names = new List<string>();
+
+                foreach (var el in ((ExpandableValue)toSplit.Value).ValueList)
+                {
+                    thisRun++;
+                    var p = dbCommand.CreateParameter();
+                    p.Value = el;
+                    p.DbType = toSplit.DbType;
+
+                    string v = $"{toSplit.ParameterName}_{x}";
+                    names.Add($"@{v}");
+                    p.ParameterName = v;
+
+                    dbCommand.Parameters.Add(p);
+                    x++;
+                    if (thisRun >= splitSize)
+                    {
+                        dbCommand.CommandText = orgCmdText.Replace($"@{toSplit.ParameterName}", string.Join(",", names.ToArray()));
+                        ExecAndFill(dbCommand, toFill, callback);
+
+                        while (dbCommand.Parameters.Count > paramCount)
+                        {
+                            dbCommand.Parameters.RemoveAt(paramCount);
+                        }
+                        thisRun = 0;
+                        names = new List<string>();
+                    }
+                }
+                if (thisRun > 0)
+                {
+                    dbCommand.CommandText = orgCmdText.Replace($"@{toSplit.ParameterName}", string.Join(",", names.ToArray()));
+                    ExecAndFill(dbCommand, toFill, callback);
+                }
+            }
+            else
+            {
+                ExecAndFill(dbCommand, toFill, callback);
+            }
+        }
+
+        private static void ExecAndFill(IDbCommand dbCommand, object toFill, Action<object, IDataReader> callback)
+        {
+            var res = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+            callback(toFill, res);
+            //help.Fill(toFill, res);
         }
     }
 
