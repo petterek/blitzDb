@@ -3,7 +3,9 @@ An easy way to do mapping between db and code.
 
 
 ## TODO:
-- [ ] Support for ASYNC the base interface IDBCommand does not support Async methods. Need to use SQLClient directly. Should we do this?
+- [x] Support for ASYNC the base interface IDBCommand does not support Async methods. Need to use SQLClient directly. Should we do this?
+  - This is implemented in the SQLServer spesific version of BlitzDb
+  - Not possible to do it in the generic version. 
 - [ ] 
 
 
@@ -56,5 +58,29 @@ var o = bdb.Rehydrate<ImmutableObject>(cmd);
 
 ```
 
+## Parameter spreading.
+If you have an array of values you want to pass into a query, this can be done by the ExpandParameter extension method. 
+```
+    var cmd = new SqlCommand("Select Id,Name,Guid from tableOne where Id in(@Id) ");
+    var o = new List<DataObject>();
+    
+    cmd.ExpandParameter(new SqlParameter("Id", DbType.Int32), new object[] { 1, 2, 4, 5, 6 });
+    
+    bdb.Fill(cmd, o);
+
+```
+
+## Automatic splitting of large parameter sets. 
+SQLServer supports a maximum of 2000 parameters.. This should not be a problem, but in some cases it can. 
+blitzDb has implemented an automatic way of splitting this into several queries.  
 
 You can also take a look at the unit tests, they show the usage of the lib.
+
+```
+    var cmd = new SqlCommand("Select Id,Name,Guid from tableOne where Id in(@Id) ");
+    var o = new List<DataObject>();
+    cmd.ExpandParameter(new SqlParameter("Id", DbType.Int32), new object[] { 1, 2, 4, 5, 6 }, 3); <-The 3 here indicates max number of params pr request.
+    bdb.splitSize = 2;
+    bdb.Fill(cmd, o);
+
+```

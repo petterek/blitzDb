@@ -163,10 +163,19 @@ namespace test
         {
             var cmd = new SqlCommand("Select Id,Name,Guid from tableOne where Id in(@Id) ");
             var o = new List<DataObject>();
-            cmd.Parameters.AddWithValue("notInUse", 1);
             cmd.ExpandParameter(new SqlParameter("Id", DbType.Int32), new object[] { 1, 2, 4, 5, 6 });
-            cmd.Parameters.AddWithValue("alsoNotInUse", 1);
-            bdb.splitSize = 2;
+            bdb.Fill(cmd, o);
+
+            Assert.AreEqual(2, o.Count);
+            Assert.AreEqual(1, o[0].Id);
+        }
+
+        [Test]
+        public void ExpandingParametersOverTheSplittingLimit()
+        {
+            var cmd = new SqlCommand("Select Id,Name,Guid from tableOne where Id in(@Id) ");
+            var o = new List<DataObject>();
+            cmd.ExpandParameter(new SqlParameter("Id", DbType.Int32), new object[] { 1, 2, 4, 5, 6 }, 3); //3 indicates maximum number of params pr query
             bdb.Fill(cmd, o);
 
             Assert.AreEqual(2, o.Count);

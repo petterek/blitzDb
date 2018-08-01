@@ -9,11 +9,9 @@ namespace blitzdb
     public class DBReaderAbstraction : IDbReaderAbstraction
     {
         public readonly IDbConnection con;
-        public int splitSize { get; set; }
 
-        public DBReaderAbstraction(IDbConnection con, int splitSize = 500)
+        public DBReaderAbstraction(IDbConnection con)
         {
-            this.splitSize = splitSize;
             this.con = con;
         }
 
@@ -116,8 +114,9 @@ namespace blitzdb
                 int x = 0;
                 int thisRun = 0;
                 List<string> names = new List<string>();
+                var theValue = ((ExpandableValue)toSplit.Value);
 
-                foreach (var el in ((ExpandableValue)toSplit.Value).ValueList)
+                foreach (var el in theValue.ValueList)
                 {
                     thisRun++;
                     var p = dbCommand.CreateParameter();
@@ -130,7 +129,7 @@ namespace blitzdb
 
                     dbCommand.Parameters.Add(p);
                     x++;
-                    if (thisRun >= splitSize)
+                    if (thisRun >= theValue.SplitSize)
                     {
                         dbCommand.CommandText = orgCmdText.Replace($"@{toSplit.ParameterName}", string.Join(",", names.ToArray()));
                         ExecAndFill(dbCommand, toFill, callback);
