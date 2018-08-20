@@ -1,9 +1,9 @@
-﻿using NUnit.Framework;
+﻿using blitzdb;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using blitzdb;
 
 namespace test
 {
@@ -107,6 +107,16 @@ namespace test
             var o = new List<Guid>();
 
             bdb.Fill(cmd, o);
+
+            Assert.AreEqual(2, o.Count);
+        }
+
+        [Test]
+        public void FillListWithValueTypeUsingGeneric()
+        {
+            var cmd = new SqlCommand("Select Guid from tableOne");
+
+            var o = bdb.Fill<List<Guid>>(cmd);
 
             Assert.AreEqual(2, o.Count);
         }
@@ -281,6 +291,16 @@ namespace test
             var ret = bdb.Fill<DataObject>(cmd);
 
             Assert.IsNull(ret);
+        }
+
+        [Test]
+        public void FillingNonExistingReturnsEmptyList()
+        {
+            var cmd = new SqlCommand("Select Id,Name as NaMe ,Guid,StringWithoutValue from tableOne where Id =@Id ");
+            cmd.Parameters.AddWithValue("Id", -1);
+            var ret = bdb.Fill<List<DataObject>>(cmd);
+
+            Assert.AreEqual(0, ret.Count);
         }
 
         [Test]

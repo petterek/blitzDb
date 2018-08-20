@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using static blitzdb.ExtensionMethods;
 
 namespace blitzdb
@@ -53,7 +53,14 @@ namespace blitzdb
                     CheckForSplitting(dbCommand, toFill, (data, reader) => help.Fill(data, reader));
                     if (!help.DataRead)
                     {
-                        toFill = default(T);
+                        if (typeof(IList).IsAssignableFrom(typeof(T))) //no result on lists gives empty list as result.
+                        {
+                            toFill = (T)Activator.CreateInstance(typeof(T));
+                        }
+                        else
+                        {
+                            toFill = default(T);
+                        }
                     }
                 }
                 finally
