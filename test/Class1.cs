@@ -132,6 +132,20 @@ namespace test
             Assert.AreEqual(3, o.Count);
             Assert.AreEqual(1, o[0].Id);
         }
+        [Test]
+        public void FillingMultipleItems()
+        {
+            var cmd = new SqlCommand(@"
+                                        Select Id,Name,Guid from tableOne; 
+                                        Select Id,Name,Guid from tableOne where Id = 1;"
+                                    );
+
+            var (o,o2) = bdb.Fill<List<DataObject>,DataObject>(cmd);
+
+            Assert.AreEqual(3, o.Count);
+            Assert.AreEqual(1, o[0].Id);
+            Assert.AreEqual(1, o2.Id);
+        }
 
         [Test]
         public void StringWithoutValueIsSetToNull()
@@ -179,7 +193,7 @@ namespace test
             Assert.AreEqual(2, o.Count);
             Assert.AreEqual(1, o[0].Id);
         }
-
+        
         [Test]
         public void ExpandingParametersOverTheSplittingLimit()
         {
@@ -342,6 +356,8 @@ namespace test
 
             Assert.AreEqual(ConnectionState.Closed, bdb.con.State);
         }
+
+  
     }
 
     internal class ImmutableObjectWithNullString

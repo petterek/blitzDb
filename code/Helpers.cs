@@ -10,6 +10,32 @@ namespace blitzdb
 {
     public class Helpers
     {
+
+        static protected Dictionary<Type, Func<object>> InstanceCreators = new Dictionary<Type, Func<object>>();
+        static private object padLock = new object();
+
+        static internal object CreateInstance(Type key)
+        {
+            if (!InstanceCreators.ContainsKey(key))
+            {
+                lock (padLock)
+                {
+                    if (!InstanceCreators.ContainsKey(key))
+                    {
+                        var ctor = Expression.New(key);
+                        InstanceCreators[key] = Expression.Lambda<Func<object>>(ctor).Compile();
+                    }
+                }
+            }
+            return InstanceCreators[key]();
+        }
+        static internal T CreateInstance<T>()
+        {
+            return (T)CreateInstance( typeof(T));
+        }
+
+
+
         private static MethodInfo getValueMi = typeof(IDataRecord).GetMethod("GetValue");
         private static MethodInfo isDbNullMi = typeof(IDataRecord).GetMethod("IsDBNull");
         private static Dictionary<string, Action<object, IDataReader>> fillerCache = new Dictionary<string, Action<object, IDataReader>>();
@@ -229,12 +255,12 @@ namespace blitzdb
             return ex;
         }
 
-        public bool Fill(object toFill, IDataReader data)
+        public bool Fill(object toFill, IDataReader data, bool autoClose= true )
         {
             if (IsList)
             {
                 FillList((System.Collections.IList)toFill, data);
-                data.Close();
+                if(autoClose) data.Close();
                 return true;
             }
             else
@@ -243,7 +269,7 @@ namespace blitzdb
                 {
                     DataRead = true;
                     FillSingle(toFill, data);
-                    data.Close();
+                    if (autoClose) data.Close();
                     return true;
                 }
                 else
@@ -281,7 +307,7 @@ namespace blitzdb
 
         private Object CreateSingle(Type instType, IDataReader reader)
         {
-            var ret = Activator.CreateInstance(instType);
+            var ret = CreateInstance(instType);
             FillSingle(ret, reader);
             return ret;
         }
@@ -311,7 +337,7 @@ namespace blitzdb
 
         private IList RehydrateList(IDataReader res)
         {
-            var ret = (IList)Activator.CreateInstance(ListType);
+            var ret = (IList)CreateInstance(ListType);
 
             Func<IDataReader, object> toCall = null;
             if (type.IsPrimitive)

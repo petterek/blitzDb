@@ -10,6 +10,7 @@ namespace blitzdb
     {
         public readonly IDbConnection con;
 
+
         public DBReaderAbstraction(IDbConnection con)
         {
             this.con = con;
@@ -40,7 +41,7 @@ namespace blitzdb
 
         public T Fill<T>(IDbCommand dbCommand) where T : new()
         {
-            var toFill = Activator.CreateInstance<T>();
+            var toFill = Helpers.CreateInstance<T>();
             dbCommand.Connection = con;
 
             var help = new Helpers(toFill.GetType(), dbCommand.CommandText);
@@ -55,7 +56,7 @@ namespace blitzdb
                     {
                         if (typeof(IList).IsAssignableFrom(typeof(T))) //no result on lists gives empty list as result.
                         {
-                            toFill = (T)Activator.CreateInstance(typeof(T));
+                            toFill = Helpers.CreateInstance<T>();
                         }
                         else
                         {
@@ -167,6 +168,77 @@ namespace blitzdb
             callback(toFill, res);
             //help.Fill(toFill, res);
         }
+
+
+        private List<object> FillManyGeneric(IDbCommand dbCommand, List<Type> toFill)
+        {
+            var cmds = dbCommand.CommandText.Trim().Split(';');
+            dbCommand.Connection = con;
+            bool manageConnection = (con.State == ConnectionState.Closed);
+            var ret = new List<object>();
+
+            if (cmds.Length - 1 != toFill.Count) throw new NotSupportedException("Number of commands and types must be equal");
+
+            if (manageConnection) con.Open();
+
+            var dbResult = dbCommand.ExecuteReader(CommandBehavior.SequentialAccess);
+            try
+            {
+                int counter = 0;
+                foreach (var type in toFill)
+                {
+                    var help = new Helpers(type, cmds[counter]);
+                    object resultHolder = Helpers.CreateInstance(type);
+
+                    help.Fill(resultHolder, dbResult, false);
+
+                    if (!help.DataRead)
+                    {
+                        if (typeof(IList).IsAssignableFrom(type)) //no result on lists gives empty list as result.
+                        {
+                            ret.Add(Helpers.CreateInstance(type));
+                        }
+                        else
+                        {
+                            ret.Add(null);
+                        }
+                    }
+                    else
+                    {
+                        ret.Add(resultHolder);
+                    }
+
+                    counter++;
+                    dbResult.NextResult();
+                }
+            }
+            finally
+            {
+                if (manageConnection) con.Close();
+                dbResult.Close();
+            }
+
+            return ret;
+        }
+
+        public (T1, T2) Fill<T1, T2>(IDbCommand dbCommand) where T1 : new() where T2 : new()
+        {
+
+            var res = FillManyGeneric(dbCommand, new List<Type> { typeof(T1), typeof(T2) });
+            return ((T1)res[0], (T2)res[1]);
+        }
+
+        public (T1, T2, T3) Fill<T1, T2, T3>(IDbCommand dbCommand) where T1 : new() where T2 : new() where T3 : new()
+        {
+            var res = FillManyGeneric(dbCommand, new List<Type> { typeof(T1), typeof(T2), typeof(T3) });
+            return ((T1)res[0], (T2)res[1], (T3)res[2]);
+        }
+        public (T1, T2, T3,T4) Fill<T1, T2, T3,T4>(IDbCommand dbCommand) where T1 : new() where T2 : new() where T3 : new() where T4 : new()
+        {
+            var res = FillManyGeneric(dbCommand, new List<Type> { typeof(T1), typeof(T2), typeof(T3), typeof(T4) });
+            return ((T1)res[0], (T2)res[1], (T3)res[2], (T4)res[3]);
+        }
+
     }
 
     public class DBAbstraction : DBReaderAbstraction, IDBAbstraction
