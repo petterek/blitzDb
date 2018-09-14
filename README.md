@@ -8,7 +8,7 @@ An easy way to do mapping between db and code.
   - Not possible to do it in the generic version. 
 - [x] ~~Spreading of paramenters~~     
 - [x] ~~Automatic splitting of large parameter sets~~
-- [x] ~~Support for tuples
+- [x] ~~Support for tuples~~
 - [ ]  
 
 
