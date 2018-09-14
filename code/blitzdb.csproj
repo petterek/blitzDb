@@ -8,7 +8,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 
     <PackageReleaseNotes></PackageReleaseNotes>
-    <Version>1.11.2</Version>
+    <Version>1.12.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

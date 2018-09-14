@@ -8,7 +8,7 @@ An easy way to do mapping between db and code.
   - Not possible to do it in the generic version. 
 - [x] ~~Spreading of paramenters~~     
 - [x] ~~Automatic splitting of large parameter sets~~
-- [ ] 
+- [x] ~~Support for tuples
 - [ ]  
 
 
@@ -97,4 +97,9 @@ In this example the query will be run 2 times against the db, and the result of 
 ```
 
 
+## To use tuples, sepperate commands with ; number of commands must be the same as number of types to fill
+```csharp
+	var cmd = new SqlCommand(@"Select Id,Name,Guid from tableOne;Select Id,Name,Guid from tableOne where Id = 1;");
+	var (o,o2) = bdb.Fill<List<DataObject>,DataObject>(cmd);
+```
 #### You can also take a look at the unit tests, they show the usage of the lib.
