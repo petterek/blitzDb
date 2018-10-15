@@ -363,9 +363,10 @@ namespace blitzdb.Test
             var cmd = new SqlCommand("Select Id from tableOne where Id =@Id ");
             int? param = new int?();
 
-            
-            cmd.Parameters.AddNullableParamWithValue()
 
+            //cmd.Parameters.AddNullableParamWithValue("Id", param);
+            cmd.Parameters.AddWithValue("Id", (object)param ?? DBNull.Value);
+            
             Assert.DoesNotThrow(() => bdb.Fill<List<int>>(cmd));
 
             Assert.AreEqual(ConnectionState.Closed, bdb.con.State);
