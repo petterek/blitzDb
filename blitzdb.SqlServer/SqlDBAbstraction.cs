@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 namespace blitzdb.SqlServer
 {
+
     public class SqlDBAbstraction : SqlDBReaderAbstraction, ISqlServerDBAbstraction
     {
         public SqlDBAbstraction(SqlConnection conn) : base(conn)

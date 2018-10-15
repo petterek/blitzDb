@@ -46,6 +46,29 @@ var cmd = new SqlCommand("Select Guid from tableOne");
 var o = bdb.Fill<List<Guid>>(cmd);
 ```
 
+---
+## Working with parameters
+---
+You should always use parameters when running sql queries, to avoid sql injection attacks.
+
+```csharp
+var cmd = new SqlCommand("Select Id,Name,Guid,StringWithoutValue from tableOne where Id =@Id ");
+var o = new List<DataObject>();
+cmd.Parameters.AddWithValue("Id", 1);
+bdb.Fill(cmd, o);
+```
+
+The `AddWithValue` is from SQLClient libarary. 
+
+## Working with Nullable parameters
+Nullable parameters are tricky.. Do like this.. :) 
+```csharp
+cmd.Parameters.AddWithValue("Id", (object)param ?? DBNull.Value);
+```
+---
+
+
+
 ## Can also work on immutable object
 Name of parameters in the construcor must match with names in query.
 

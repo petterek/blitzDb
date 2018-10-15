@@ -107,12 +107,16 @@ namespace blitzdb
 
             foreach (IDbDataParameter p in dbCommand.Parameters)
             {
-                if (p.Value.GetType() == typeof(ExpandableValue))
+                if(p.Value != null)
                 {
-                    toSplit = p;
-                    dbCommand.Parameters.Remove(p);
-                    break;
+                    if (p.Value.GetType() == typeof(ExpandableValue))
+                    {
+                        toSplit = p;
+                        dbCommand.Parameters.Remove(p);
+                        break;
+                    }
                 }
+                
             }
 
             if (toSplit != null)
