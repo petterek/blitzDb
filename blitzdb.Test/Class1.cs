@@ -372,6 +372,19 @@ namespace blitzdb.Test
             Assert.AreEqual(ConnectionState.Closed, bdb.con.State);
         }
 
+        [Test]
+        public void QueryValueByGuidWorksAsExpected()
+        {
+            var cmd = new SqlCommand("Select * from tableOne where Guid =@guid ");
+
+            //cmd.Parameters.AddNullableParamWithValue("Id", param);
+            cmd.Parameters.AddWithValue("guid", Guid.Parse(currentDb));
+
+            var list =  bdb.Fill<List<DataObject>>(cmd);
+
+            Assert.AreEqual(2, list.Count);
+
+        }
 
     }
 
