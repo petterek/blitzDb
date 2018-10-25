@@ -8,8 +8,34 @@ using System.Reflection;
 
 namespace blitzdb
 {
-    internal class Helpers
+    public class Helpers
     {
+
+        static protected Dictionary<Type, Func<object>> InstanceCreators = new Dictionary<Type, Func<object>>();
+        static private object padLock = new object();
+
+        static internal object CreateInstance(Type key)
+        {
+            if (!InstanceCreators.ContainsKey(key))
+            {
+                lock (padLock)
+                {
+                    if (!InstanceCreators.ContainsKey(key))
+                    {
+                        var ctor = Expression.New(key);
+                        InstanceCreators[key] = Expression.Lambda<Func<object>>(ctor).Compile();
+                    }
+                }
+            }
+            return InstanceCreators[key]();
+        }
+        static internal T CreateInstance<T>()
+        {
+            return (T)CreateInstance( typeof(T));
+        }
+
+
+
         private static MethodInfo getValueMi = typeof(IDataRecord).GetMethod("GetValue");
         private static MethodInfo isDbNullMi = typeof(IDataRecord).GetMethod("IsDBNull");
         private static Dictionary<string, Action<object, IDataReader>> fillerCache = new Dictionary<string, Action<object, IDataReader>>();
@@ -47,6 +73,8 @@ namespace blitzdb
                 fillerKey = $"{type.FullName}-{fillerKey}".GetHashCode().ToString();
             }
         }
+
+        public bool DataRead { get; private set; }
 
         internal static Action<Object, IDataReader> CreateFillerAction(Type toFill, IDataReader res)
         {
@@ -227,33 +255,40 @@ namespace blitzdb
             return ex;
         }
 
-        internal bool Fill(object toFill, IDataReader data)
+        public bool Fill(object toFill, IDataReader data, bool autoClose= true )
         {
             if (IsList)
             {
                 FillList((System.Collections.IList)toFill, data);
+                if(autoClose) data.Close();
                 return true;
             }
             else
             {
                 if (data.Read())
                 {
+                    DataRead = true;
                     FillSingle(toFill, data);
+                    if (autoClose) data.Close();
                     return true;
                 }
                 else
                 {
+                    DataRead = false;
                     return false;
                 }
             }
         }
 
-        internal object Rehydrate(IDataReader data)
+        public object Rehydrate(IDataReader data)
         {
             if (!data.Read())
             {
+                DataRead = false;
                 return null;
             }
+
+            DataRead = true;
 
             if (IsList)
             {
@@ -272,7 +307,7 @@ namespace blitzdb
 
         private Object CreateSingle(Type instType, IDataReader reader)
         {
-            var ret = Activator.CreateInstance(instType);
+            var ret = CreateInstance(instType);
             FillSingle(ret, reader);
             return ret;
         }
@@ -287,6 +322,7 @@ namespace blitzdb
             bool isValueType = type.IsPrimitive | type.BaseType == typeof(System.ValueType);
             while (res.Read())
             {
+                DataRead = true;
                 if (isValueType) //If the list is of type List<int>. Will always use col 0
                 {
                     object value = res[0];
@@ -301,7 +337,7 @@ namespace blitzdb
 
         private IList RehydrateList(IDataReader res)
         {
-            var ret = (IList)Activator.CreateInstance(ListType);
+            var ret = (IList)CreateInstance(ListType);
 
             Func<IDataReader, object> toCall = null;
             if (type.IsPrimitive)

@@ -1,11 +1,11 @@
-﻿using blitzdb;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using blitzdb.SqlServer;
 
-namespace test
+namespace blitzdb.Test
 {
     [TestFixture]
     public class Class1
@@ -140,7 +140,7 @@ namespace test
                                         Select Id,Name,Guid from tableOne where Id = 1;"
                                     );
 
-            var (o,o2) = bdb.Fill<List<DataObject>,DataObject>(cmd);
+            var (o, o2) = bdb.Fill<List<DataObject>, DataObject>(cmd);
 
             Assert.AreEqual(3, o.Count);
             Assert.AreEqual(1, o[0].Id);
@@ -193,7 +193,7 @@ namespace test
             Assert.AreEqual(2, o.Count);
             Assert.AreEqual(1, o[0].Id);
         }
-        
+
         [Test]
         public void ExpandingParametersOverTheSplittingLimit()
         {
@@ -357,7 +357,35 @@ namespace test
             Assert.AreEqual(ConnectionState.Closed, bdb.con.State);
         }
 
-  
+        [Test]
+        public void NullableParametersIsFilledWithDBNull()
+        {
+            var cmd = new SqlCommand("Select Id from tableOne where Id =@Id ");
+            int? param = new int?();
+
+
+            //cmd.Parameters.AddNullableParamWithValue("Id", param);
+            cmd.Parameters.AddWithValue("Id", (object)param ?? DBNull.Value);
+            
+            Assert.DoesNotThrow(() => bdb.Fill<List<int>>(cmd));
+
+            Assert.AreEqual(ConnectionState.Closed, bdb.con.State);
+        }
+
+        [Test]
+        public void QueryValueByGuidWorksAsExpected()
+        {
+            var cmd = new SqlCommand("Select * from tableOne where Guid =@guid ");
+
+            //cmd.Parameters.AddNullableParamWithValue("Id", param);
+            cmd.Parameters.AddWithValue("guid", Guid.Parse(currentDb));
+
+            var list =  bdb.Fill<List<DataObject>>(cmd);
+
+            Assert.AreEqual(2, list.Count);
+
+        }
+
     }
 
     internal class ImmutableObjectWithNullString

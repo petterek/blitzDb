@@ -14,7 +14,9 @@ namespace blitzdb
         /// <param name="toFill"></param>
         void Fill(IDbCommand dbCommand, object toFill);
         T Fill<T>(IDbCommand dbCommand) where T : new();
-
+        (T1, T2) Fill<T1, T2>(IDbCommand dbCommand) where T1 : new() where T2 : new();
+        (T1, T2, T3) Fill<T1, T2, T3>(IDbCommand dbCommand) where T1 : new() where T2 : new() where T3 : new();
+        (T1, T2, T3, T4) Fill<T1, T2, T3, T4>(IDbCommand dbCommand) where T1 : new() where T2 : new() where T3 : new() where T4:new();
         /// <summary>
         /// Creates an objct with values injected into constructor
         /// </summary>
