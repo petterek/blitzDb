@@ -59,7 +59,7 @@ namespace blitzdb.Test
         [SetUp]
         public void SetUp()
         {
-            bdb = new blitzdb.DBAbstraction(new SqlConnection(ConnectionString()));
+            bdb = new DBAbstraction(new SqlConnection(ConnectionString()));
         }
 
         [TearDown]

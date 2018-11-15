@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
 
 namespace blitzdb
 {
-    public interface IDbReaderAbstraction
+    public interface IDbReaderAbstraction : IDisposable
     {
 
         /// <summary>
@@ -26,7 +25,7 @@ namespace blitzdb
         T Rehydrate<T>(IDbCommand dbCommand);
     }
 
-    public interface IDBAbstraction : IDbReaderAbstraction
+    public interface IDBAbstraction : IDisposable
     {
         void Execute(IDbCommand dbCommand);
         T ExecuteScalar<T>(IDbCommand dbCommand);
