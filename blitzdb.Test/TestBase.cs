@@ -1,20 +1,20 @@
 using NUnit.Framework;
 using System;
 using System.Data.SqlClient;
-using blitzdb;
+
 
 namespace blitzdb.Test
 {
     public abstract class TestBase
     {
-        private string ConnectionString() => $"Data Source=localhost;Initial Catalog={currentDb};Integrated Security=True; TimeOut=1;";
+        protected string ConnectionString() => $"Data Source=localhost;Initial Catalog={currentDb};Integrated Security=True; TimeOut=1;";
 
         private string MgmtConnectionString = $"Data Source=localhost;Integrated Security=True; TimeOut=1;";
 
         private string currentDb;
-        protected blitzdb.DBAbstraction bdb;
+        protected IDBAbstraction bdb;
 
-        protected blitzdb.SqlServer.SqlDBAbstraction sqlDBAbstraction;
+        protected SqlServer.SqlDBAbstraction sqlDBAbstraction;
 
         [OneTimeSetUp]
         public void SetupOnce()
@@ -70,4 +70,5 @@ namespace blitzdb.Test
             //Conn.Close();
         }
     }
+
 }

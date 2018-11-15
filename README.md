@@ -9,7 +9,7 @@ An easy way to do mapping between db and code.
 - [x] ~~Spreading of paramenters~~     
 - [x] ~~Automatic splitting of large parameter sets~~
 - [x] ~~Support for tuples~~
-- [ ]  
+- [ ] Implement bufferd db writer, to support Singleton usage  
 
 
 
